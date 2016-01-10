@@ -71,8 +71,11 @@ class SQLiteAPI(object):
         """
         if not os.path.isfile(dbpath):
             if self.verbose:
-                print "ERROR: The database doesn't exist..."
-            return 1
+                print "WARNING: The database doesn't exist. I create an empty one from scratch"
+            os.system("touch " + dbpath)
+        else:
+            if self.verbose:
+                print "INFO: database found. Let's move foward!"
         self.sql.path = dbpath
         return 0
 
@@ -97,63 +100,105 @@ class SQLiteAPI(object):
         self.close()
         self.sql = None
 
-    def create_page(self, page="default"):
+    def create_table(self, table="defaultTable"):
         """
-        Create a page, made in SQLite with a table
+        Create a SQL table
+        The function can be called with only a string arguments. if so,
+        the function will create a table with the name you passed 
+        with two columns, parameter and value
+        Else, the function you need to pass such structure:
+            table is a dict
+            table["name"]
+            table["column"] = [{name, type}, {name, type}, ...]
+        You can pass as much column you need. The type supported
+        are int, float, string and raw
+        The column is created only if another one doesn't exist
         """
-        if page == "default":
-            cmd = "CREATE TABLE default (id INTEGER PRIMARY KEY, item CHAR(100) NOT NULL, value INTEGER NOT NULL)"
-        else:
-            cmd = "CREATE TABLE "
-            cmd += str(page["name"]) + " (id INTEGER PRIMARY KEY, "
-            for col in page["column"]:
-                cmd += str(col["name"])
-                if "string" in col["type"].lower() or "str" in col["type"].lower():
-                    cmd += "CHAR(100) NOT NULL, "
-                if "integer" in col["type"].lower() or "int" in col["type"].lower():
-                    cmd += "INTEGER NOT NULL "
-                if col is not page["column"][-1]:
-                    cmd += ","
-            cmd += ")"
-        print cmd
-        # Store into the database
-        self.sql.db3.execute(cmd)
-        self.sql.db3.commit()
 
-    def read(self, page="default", item=None):
+        if type(table) is str:
+            if self.search_table(table) is 0:
+                if self.verbose:
+                    print "INFO: Creating table \""+ table + "\""
+                # Build the command
+                cmd = "CREATE TABLE " + table + " (id INTEGER PRIMARY KEY, item CHAR(100) NOT NULL, value INTEGER NOT NULL)"
+                # Store into the database
+                self.sql.db3.execute(cmd)
+                self.sql.db3.commit()
+
+        elif type(table) is dict:
+            if self.search_table(table["name"]) is 0:
+                if self.verbose:
+                    print "INFO: Creating table \""+ table["name"] + "\""
+                # Build the command
+                cmd = "CREATE TABLE "
+                cmd += str(table["name"]) + " ( id INTEGER PRIMARY KEY,"
+                for col in table["column"]:
+                    cmd += " " + str(col["name"])
+                    if "string" in col["type"].lower() or "str" in col["type"].lower():
+                        cmd += " CHAR(100) NOT NULL"
+                    if "integer" in col["type"].lower() or "int" in col["type"].lower():
+                        cmd += " INTEGER NOT NULL"
+                    if "float" in col["type"].lower() or "real" in col["type"].lower():
+                        cmd += " REAL NOT NULL"
+                    if "blob" in col["type"].lower() or "raw" in col["type"].lower():
+                        cmd += " BLOB"
+                    if col is not table["column"][-1]:
+                        cmd += ","
+                cmd += " )"
+                # Store into the database
+                self.sql.db3.execute(cmd)
+                self.sql.db3.commit()
+        else:
+            print "ERROR: No string or dict is passed"
+
+    def read(self, table="defaultTable", item=None):
         """
         Read an entry in a table of the database
         """
 
-    def write(self, page="default", item=None):
+    def write(self, table="defaultTable", item=None):
         """
         Write an entry in a table of the database
         """
 
-    def update(self, page="default", item=None):
+    def update(self, table="defaultTable", item=None):
         """
         Update an entry in a table of the database
         """
-        self.sql.db3.execute("INSERT INTO " + page + " (job,status) VALUES ('" + item + "', -1)")
+        self.sql.db3.execute("INSERT INTO " + table + " (job,status) VALUES ('" + item + "', -1)")
         self.sql.db3.commit()
 
-    def search(self, page="default", item=None):
+    def search_table(self, table="defaultTable"):
         """
         Search an entry in a table of the database
         """
-        if item is not None:
-            self.sql.cursor.execute("SELECT job,status FROM " + page + " WHERE job=\"" + item + '\"')
-            return self.sql.cursor.fetchall()
-        else:
+        ret = 0
+        try:
+            ret = self.sql.cursor.execute("SELECT 1 FROM " + table + " LIMIT 1")
+            ret = self.sql.cursor.fetchall()
+        except:
             if self.verbose:
-                print "ERROR: item is not defined"
-            return 1
+                print "INFO: searched table \""+ table + "\" is not defined"
+        return ret
 
-    def delete(self, page="default", item=None):
+    def search_items(self, table="defaultTable", items=None):
+        """
+        Search an entry in a table of the database
+        """
+        if self.search_table(table) is not 1:
+            if items is not None:
+                self.sql.cursor.execute("SELECT job,status FROM " + table + " WHERE job=\"" + items + '\"')
+                return self.sql.cursor.fetchall()
+            else:
+                if self.verbose:
+                    print "ERROR: item is not defined"
+                return 1
+
+    def delete(self, table="defaultTable", item=None):
         """
         Delete an entry in a table of the database
         """
-        self.sql.db3.execute("DELETE FROM " + page  + "WHERE job=\"" + item["name"] + " \"")
+        self.sql.db3.execute("DELETE FROM " + table  + "WHERE job=\"" + item["name"] + " \"")
         self.sql.db3.commit()
 
     def dump(self):
