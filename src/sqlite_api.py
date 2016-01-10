@@ -40,19 +40,6 @@ class DbObject(object):
         """
         print self.template
 
-    def open(self):
-        """
-        Open sqlite3 database
-        """
-        self.db3 = sqlite3.connect(self.path)
-        self.cursor = self.db3.cursor()
-
-    def close(self):
-        """
-        Close sqlite3 database
-        """
-        self.cursor.close()
-
 
 class SQLiteAPI(object):
     """
@@ -89,19 +76,48 @@ class SQLiteAPI(object):
         self.sql.path = dbpath
         return 0
 
+    def open(self):
+        """
+        Open sqlite3 database
+        """
+        self.sql.db3 = sqlite3.connect(self.sql.path)
+        self.sql.cursor = self.sql.db3.cursor()
+
+    def close(self):
+        """
+        Close sqlite3 database
+        """
+        self.sql.cursor.close()
+
     def exit(self):
         """
         Close sqlite3 database
         Initialize the db3 object
         """
-        self.sql.close()
+        self.close()
         self.sql = None
 
     def create_page(self, page="default"):
         """
         Create a page, made in SQLite with a table
         """
-        self.sql.db3.execute("CREATE TABLE " + page + " (id INTEGER PRIMARY KEY, job CHAR(100) NOT NULL, status INTEGER NOT NULL)")
+        if page == "default":
+            cmd = "CREATE TABLE default (id INTEGER PRIMARY KEY, item CHAR(100) NOT NULL, value INTEGER NOT NULL)"
+        else:
+            cmd = "CREATE TABLE "
+            cmd += str(page["name"]) + " (id INTEGER PRIMARY KEY, "
+            for col in page["column"]:
+                cmd += str(col["name"])
+                if "string" in col["type"].lower() or "str" in col["type"].lower():
+                    cmd += "CHAR(100) NOT NULL, "
+                if "integer" in col["type"].lower() or "int" in col["type"].lower():
+                    cmd += "INTEGER NOT NULL "
+                if col is not page["column"][-1]:
+                    cmd += ","
+            cmd += ")"
+        print cmd
+        # Store into the database
+        self.sql.db3.execute(cmd)
         self.sql.db3.commit()
 
     def read(self, page="default", item=None):
