@@ -23,10 +23,27 @@ if __name__ == '__main__':
     PAGE = {}
     PAGE["name"] = "Pagees"
     PAGE["column"] = []
-    PAGE["column"].append({"name" : 'aParameter', "type" : "String"})
-    PAGE["column"].append({"name" : 'aComment', "type" : "str"})
-    PAGE["column"].append({"name" : 'aStatus', "type" : "int"})
+    PAGE["column"].append({"name" : 'name', "type" : "String"})
+    PAGE["column"].append({"name" : 'comment', "type" : "str"})
+    PAGE["column"].append({"name" : 'status', "type" : "int"})
     API.create_table(PAGE)
+    ITEM = {}
+    ITEM["name"] = "aParameter1"
+    ITEM["comment"] = "ThisIsAnUpdate"
+    ITEM["status"] = "OK"
+    API.write(table=PAGE["name"], item=ITEM)
+    ITEM = {}
+    ITEM["name"] = "aParameter2"
+    ITEM["comment"] = "ThisIsAnUpdate"
+    ITEM["status"] = "OK"
+    API.write(table=PAGE["name"], item=ITEM)
+    API.write(table=PAGE["name"], item=ITEM)
+    #print API.read(table="Pagees", item=ITEM)
+    ITEM = {}
+    ITEM["name"] = "aParameter1"
+    print API.search_items(PAGE["name"], item=ITEM)
+    ITEM["name"] = "aParameter2"
+    print API.search_items(PAGE["name"], item=ITEM)
     API.exit()
 
 

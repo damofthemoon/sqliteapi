@@ -13,6 +13,7 @@ SQLite API and its sub-class
 
 import os
 import sqlite3
+from datetime import datetime
 
 class DbObject(object):
     """
@@ -104,7 +105,7 @@ class SQLiteAPI(object):
         """
         Create a SQL table
         The function can be called with only a string arguments. if so,
-        the function will create a table with the name you passed 
+        the function will create a table with the name you passed
         with two columns, parameter and value
         Else, the function you need to pass such structure:
             table is a dict
@@ -135,16 +136,15 @@ class SQLiteAPI(object):
                 for col in table["column"]:
                     cmd += " " + str(col["name"])
                     if "string" in col["type"].lower() or "str" in col["type"].lower():
-                        cmd += " CHAR(100) NOT NULL"
+                        cmd += " CHAR(100) NOT NULL,"
                     if "integer" in col["type"].lower() or "int" in col["type"].lower():
-                        cmd += " INTEGER NOT NULL"
+                        cmd += " INTEGER NOT NULL,"
                     if "float" in col["type"].lower() or "real" in col["type"].lower():
-                        cmd += " REAL NOT NULL"
+                        cmd += " REAL NOT NULL,"
                     if "blob" in col["type"].lower() or "raw" in col["type"].lower():
-                        cmd += " BLOB"
-                    if col is not table["column"][-1]:
-                        cmd += ","
-                cmd += " )"
+                        cmd += " BLOB,"
+                cmd += " DATETIME CHAR(100) NOT NULL)"
+
                 # Store into the database
                 self.sql.db3.execute(cmd)
                 self.sql.db3.commit()
@@ -160,12 +160,21 @@ class SQLiteAPI(object):
         """
         Write an entry in a table of the database
         """
+        print "INFO: Write item in \"" + table + "\""
+        cmd = "INSERT INTO " + table + " "
+        (names, values) = self.format_items(item)
+        cmd += names + values
+        self.sql.db3.execute(cmd)
+        self.sql.db3.commit()
 
     def update(self, table="defaultTable", item=None):
         """
         Update an entry in a table of the database
         """
-        self.sql.db3.execute("INSERT INTO " + table + " (job,status) VALUES ('" + item + "', -1)")
+        cmd = "UPDATE INTO " + table + " "
+        (names, values) = self.format_items(item)
+        cmd += names + values
+        self.sql.db3.execute(cmd)
         self.sql.db3.commit()
 
     def search_table(self, table="defaultTable"):
@@ -174,25 +183,29 @@ class SQLiteAPI(object):
         """
         ret = 0
         try:
-            ret = self.sql.cursor.execute("SELECT 1 FROM " + table + " LIMIT 1")
+            ret = self.sql.cursor.execute("SELECT 1 FROM " + str(table) + " LIMIT 1")
             ret = self.sql.cursor.fetchall()
         except:
             if self.verbose:
                 print "INFO: searched table \""+ table + "\" is not defined"
         return ret
 
-    def search_items(self, table="defaultTable", items=None):
+    def search_items(self, table="defaultTable", item=None):
         """
         Search an entry in a table of the database
+        Require a dict with only one entry to filter the search
         """
-        if self.search_table(table) is not 1:
-            if items is not None:
-                self.sql.cursor.execute("SELECT job,status FROM " + table + " WHERE job=\"" + items + '\"')
-                return self.sql.cursor.fetchall()
-            else:
-                if self.verbose:
-                    print "ERROR: item is not defined"
-                return 1
+        if item is not None:
+            nname = ""
+            for key in item.keys():
+                nname = key
+            cmd = "SELECT * FROM " + table + " WHERE " + nname + "=\"" + item[nname] + '\"'
+            self.sql.cursor.execute(cmd)
+            return self.sql.cursor.fetchall()
+        else:
+            if self.verbose:
+                print "ERROR: item is not defined"
+            return 1
 
     def delete(self, table="defaultTable", item=None):
         """
@@ -205,4 +218,26 @@ class SQLiteAPI(object):
         """
         Dump the database to store it
         """
+
+    def format_items(self, item=None):
+        """
+        from an item dict, return the strings name and values
+        """
+        ipp = 1
+        names = "("
+        values = "VALUES ("
+        for elem in item.items():
+            names += "\"" + str(elem[0]) + "\""
+            if ipp != len(item):
+                names += ", "
+            else:
+                names += ", DATETIME) "
+            # And their values to update
+            values += "\"" + str(elem[1]) + "\""
+            if ipp != len(item):
+                values += ", "
+            else:
+                values += ", \"" + str(datetime.now()) + "\") "
+            ipp += 1
+        return (names, values)
 
