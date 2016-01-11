@@ -135,7 +135,7 @@ class SQLiteAPI(object):
                 cmd += str(table["name"]) + " ( id INTEGER PRIMARY KEY,"
                 for col in table["column"]:
                     cmd += " " + str(col["name"])
-                    if "string" in col["type"].lower() or "str" in col["type"].lower():
+                    if "string" in col["type"].lower() or "str" in col["type"].lower() or "char" in col["type"].lower():
                         cmd += " CHAR(100) NOT NULL,"
                     if "integer" in col["type"].lower() or "int" in col["type"].lower():
                         cmd += " INTEGER NOT NULL,"
@@ -154,7 +154,40 @@ class SQLiteAPI(object):
     def read(self, table="defaultTable", item=None):
         """
         Read an entry in a table of the database
+        Require a dict with only one entry to filter the search
         """
+        if item is not None and type(item) is dict:
+            # Extract the key's name to search for
+            nname = ""
+            for key in item.keys():
+                nname = key
+            cmd = "SELECT * FROM " + table + " WHERE " + nname + "=\"" + item[nname] + '\"'
+            self.sql.cursor.execute(cmd)
+            # Read the values into the table
+            _vals = self.sql.cursor.fetchall()
+            # Read the column names
+            _cols = self.read_column_info(table)
+            ret_items = []
+            # Now parse each lines read into the database
+            for __vals in _vals:
+                ret_item = []
+                # Now combine each column name and its values into
+                # a list of dict( "name", "value")
+                for (_col, _val) in zip(_cols, list(__vals)):
+                    dit = dict()
+                    dit["name"] = _col["name"]
+                    dit["value"] = _val
+                    ret_item.append(dit)
+                if len(_vals) == 1:
+                    return ret_item
+                else:
+                    ret_items.append(ret_item)
+            return ret_items
+        else:
+            if self.verbose:
+                print "ERROR: item is not defined"
+            return 1
+
 
     def write(self, table="defaultTable", item=None):
         """
@@ -162,7 +195,7 @@ class SQLiteAPI(object):
         """
         print "INFO: Write item in \"" + table + "\""
         cmd = "INSERT INTO " + table + " "
-        (names, values) = self.format_items(item)
+        (names, values) = self.format_items_for_write(item)
         cmd += names + values
         self.sql.db3.execute(cmd)
         self.sql.db3.commit()
@@ -171,11 +204,6 @@ class SQLiteAPI(object):
         """
         Update an entry in a table of the database
         """
-        cmd = "UPDATE INTO " + table + " "
-        (names, values) = self.format_items(item)
-        cmd += names + values
-        self.sql.db3.execute(cmd)
-        self.sql.db3.commit()
 
     def search_table(self, table="defaultTable"):
         """
@@ -196,6 +224,7 @@ class SQLiteAPI(object):
         Require a dict with only one entry to filter the search
         """
         if item is not None:
+            # Extract the key's name to search for
             nname = ""
             for key in item.keys():
                 nname = key
@@ -214,12 +243,23 @@ class SQLiteAPI(object):
         self.sql.db3.execute("DELETE FROM " + table  + "WHERE job=\"" + item["name"] + " \"")
         self.sql.db3.commit()
 
-    def dump(self):
+    def read_column_info(self, table="defaultTable"):
         """
-        Dump the database to store it
+        Return the column names of the table
         """
+        cmd = "PRAGMA table_info('" + table + "')"
+        self.sql.cursor.execute(cmd)
+        infos = self.sql.cursor.fetchall()
+        column_info = []
+        for info in infos:
+            col = {}
+            col["id"] = str(info[0]).encode("utf-8")
+            col["name"] = str(info[1]).encode("utf-8")
+            col["type"] = str(info[2]).encode("utf-8")
+            column_info.append(col)
+        return column_info
 
-    def format_items(self, item=None):
+    def format_items_for_write(self, item=None):
         """
         from an item dict, return the strings name and values
         """
@@ -228,16 +268,19 @@ class SQLiteAPI(object):
         values = "VALUES ("
         for elem in item.items():
             names += "\"" + str(elem[0]) + "\""
-            if ipp != len(item):
-                names += ", "
-            else:
-                names += ", DATETIME) "
-            # And their values to update
             values += "\"" + str(elem[1]) + "\""
             if ipp != len(item):
+                names += ", "
                 values += ", "
             else:
+                names += ", DATETIME) "
                 values += ", \"" + str(datetime.now()) + "\") "
             ipp += 1
         return (names, values)
+
+    def dump(self):
+        """
+        Dump the database to store it
+        """
+
 

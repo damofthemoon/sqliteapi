@@ -19,7 +19,6 @@ if __name__ == '__main__':
     os.system("rm -fr test/db.db3")
     API = SQLiteAPI(verbose=1, dbpath="test/db.db3")
     API.open()
-    API.create_table()
     PAGE = {}
     PAGE["name"] = "Pagees"
     PAGE["column"] = []
@@ -32,18 +31,20 @@ if __name__ == '__main__':
     ITEM["comment"] = "ThisIsAnUpdate"
     ITEM["status"] = "OK"
     API.write(table=PAGE["name"], item=ITEM)
-    ITEM = {}
-    ITEM["name"] = "aParameter2"
-    ITEM["comment"] = "ThisIsAnUpdate"
-    ITEM["status"] = "OK"
-    API.write(table=PAGE["name"], item=ITEM)
-    API.write(table=PAGE["name"], item=ITEM)
+    #API.write(table=PAGE["name"], item=ITEM)
+    #ITEM = {}
+    #ITEM["name"] = "aParameter2"
+    #ITEM["comment"] = "ThisIsAnUpdate"
+    #ITEM["status"] = "OK"
+    #API.write(table=PAGE["name"], item=ITEM)
+    #API.write(table=PAGE["name"], item=ITEM)
     #print API.read(table="Pagees", item=ITEM)
     ITEM = {}
     ITEM["name"] = "aParameter1"
-    print API.search_items(PAGE["name"], item=ITEM)
-    ITEM["name"] = "aParameter2"
-    print API.search_items(PAGE["name"], item=ITEM)
+    print API.read(PAGE["name"], item=ITEM)
+    #ITEM["name"] = "aParameter1"
+    #API.read(PAGE["name"], item=ITEM)
+    #print API.read_column_info(PAGE["name"])
     API.exit()
 
 
