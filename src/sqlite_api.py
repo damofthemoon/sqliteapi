@@ -125,6 +125,9 @@ class SQLiteAPI(object):
                 # Store into the database
                 self.sql.db3.execute(cmd)
                 self.sql.db3.commit()
+                return 0
+            else:
+                return 1
 
         elif type(table) is dict:
             if self.search_table(table["name"]) is 0:
@@ -148,8 +151,12 @@ class SQLiteAPI(object):
                 # Store into the database
                 self.sql.db3.execute(cmd)
                 self.sql.db3.commit()
+                return 0
+            else:
+                return 1
         else:
             print "ERROR: No string or dict is passed"
+            return 1
 
     def read(self, table="defaultTable", item=None):
         """
