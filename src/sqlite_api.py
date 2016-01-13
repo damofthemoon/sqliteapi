@@ -121,7 +121,7 @@ class SQLiteAPI(object):
                 if self.verbose:
                     print "INFO: Creating table \""+ table + "\""
                 # Build the command
-                cmd = "CREATE TABLE " + table + " (id INTEGER PRIMARY KEY, item CHAR(100) NOT NULL, value INTEGER NOT NULL)"
+                cmd = "CREATE TABLE " + table + " (id INTEGER PRIMARY KEY, item CHAR(100) NOT NULL, value BLOB, DATETIME CHAR(100) NOT NULL)"
                 # Store into the database
                 self.sql.db3.execute(cmd)
                 self.sql.db3.commit()
