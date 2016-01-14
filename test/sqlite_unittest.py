@@ -18,7 +18,7 @@ from sqlite_api import SQLiteAPI
 
 class TestCreateTable(unittest.TestCase):
     """
-    Testsuite 1 to test map function
+    Testsuite 1 to test create table function
     """
     def setUp(self):
         """
@@ -58,7 +58,7 @@ class TestCreateTable(unittest.TestCase):
 
 class TestColumnName(unittest.TestCase):
     """
-    Testsuite 1 to test map function
+    Testsuite 1 to ensure proper column name
     """
     def setUp(self):
         """
@@ -140,11 +140,68 @@ class TestColumnName(unittest.TestCase):
                 self.assertEqual(col[0]["type"], col[1]["type"].lower())
             ipp = ipp + 1
 
+class TestWrite(unittest.TestCase):
+    """
+    Testsuite 1 to test map function
+    """
+    def setUp(self):
+        """
+        Setup function launched before a testcase
+        """
+        self.dbpath = 'test/db.db3'
+        self.unit = SQLiteAPI(verbose=1, dbpath=self.dbpath)
+        self.unit.open()
+
+    def tearDown(self):
+        """
+        tearDown function launched after a testcase
+        """
+        os.system("rm -fr " + self.dbpath)
+
+    def test_write_failure(self):
+        """
+        Simple test to be sure write function alive
+        """
+        # Build a table to store into the database
+        table = {}
+        table["name"] = "Pagees"
+        table["column"] = []
+        table["column"].append({"name" : 'name', "type" : "String"})
+        table["column"].append({"name" : 'comment', "type" : "str"})
+        table["column"].append({"name" : 'status', "type" : "int"})
+        self.unit.create_table(table)
+        item = {}
+        item["name"] = "aParameter1"
+        item["comment"] = "ThisIsAnUpdate"
+        item["status"] = "OK"
+        self.assertEqual(1, self.unit.write(table=table["name"]))
 
 
+    def test_write_success(self):
+        """
+        Simple test to be sure write function alive
+        """
+        # Build a table to store into the database
+        table = {}
+        table["name"] = "Pagees"
+        table["column"] = []
+        table["column"].append({"name" : 'name', "type" : "String"})
+        table["column"].append({"name" : 'comment', "type" : "str"})
+        table["column"].append({"name" : 'status', "type" : "int"})
+        self.unit.create_table(table)
+        item = {}
+        item["name"] = "aParameter1"
+        item["comment"] = "ThisIsAnUpdate"
+        item["status"] = "OK"
+        self.assertEqual(0, self.unit.write(table=table["name"], item=item))
+
+# Test read with a simple dict to search
+# Test read with a set of parameters to search
 
 if __name__ == '__main__':
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestCreateTable)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestColumnName)
+    unittest.TextTestRunner(verbosity=2).run(SUITE)
+    SUITE = unittest.TestLoader().loadTestsFromTestCase(TestWrite)
     unittest.TextTestRunner(verbosity=2).run(SUITE)

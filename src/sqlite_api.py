@@ -163,12 +163,19 @@ class SQLiteAPI(object):
         Read an entry in a table of the database
         Require a dict with only one entry to filter the search
         """
-        if item is not None and type(item) is dict:
+        if item is not None and (type(item) is dict or type(item) is list):
             # Extract the key's name to search for
-            nname = ""
-            for key in item.keys():
-                nname = key
-            cmd = "SELECT * FROM " + table + " WHERE " + nname + "=\"" + item[nname] + '\"'
+            if type(item) is dict:
+                nname = ""
+                for key in item.keys():
+                    nname = key
+                cmd = "SELECT * FROM " + table + " WHERE " + nname + "=\"" + item[nname] + '\"'
+            elif type(item) is list:
+                cmd = "SELECT * FROM " + table + " WHERE "
+                for elm in item:
+                    for key in elm:
+                        cmd += key + "=\"" + elm[key] + " "
+
             self.sql.cursor.execute(cmd)
             # Read the values into the table
             _vals = self.sql.cursor.fetchall()
@@ -200,17 +207,39 @@ class SQLiteAPI(object):
         """
         Write an entry in a table of the database
         """
-        print "INFO: Write item in \"" + table + "\""
-        cmd = "INSERT INTO " + table + " "
-        (names, values) = self.format_items_for_write(item)
-        cmd += names + values
-        self.sql.db3.execute(cmd)
-        self.sql.db3.commit()
+        if type(item) is dict:
+            print "INFO: Write item in \"" + table + "\""
+            cmd = "INSERT INTO " + table + " "
+            (names, values) = self.format_items_for_write(item)
+            cmd += names + values
+            self.sql.db3.execute(cmd)
+            self.sql.db3.commit()
+            return 0
+        else:
+            print "ERROR: item passed for write command is not a dict"
+            return 1
 
     def update(self, table="defaultTable", item=None):
         """
         Update an entry in a table of the database
         """
+
+    def delete(self, table="defaultTable", item=None):
+        """
+        Delete an entry in a table of the database
+        """
+        if item is not None and type(item) is dict:
+            # Extract the key's name to search for
+            nname = ""
+            for key in item.keys():
+                nname = key
+            try:
+                self.sql.db3.execute("DELETE FROM " + table  + "WHERE " + nname + "=\"" + item[nname] + " \"")
+                self.sql.db3.commit()
+                return 0
+            except:
+                print "ERROR: delete command has not been executed"
+                return 1
 
     def search_table(self, table="defaultTable"):
         """
@@ -224,31 +253,6 @@ class SQLiteAPI(object):
             if self.verbose:
                 print "INFO: searched table \""+ table + "\" is not defined"
         return ret
-
-    def search_items(self, table="defaultTable", item=None):
-        """
-        Search an entry in a table of the database
-        Require a dict with only one entry to filter the search
-        """
-        if item is not None:
-            # Extract the key's name to search for
-            nname = ""
-            for key in item.keys():
-                nname = key
-            cmd = "SELECT * FROM " + table + " WHERE " + nname + "=\"" + item[nname] + '\"'
-            self.sql.cursor.execute(cmd)
-            return self.sql.cursor.fetchall()
-        else:
-            if self.verbose:
-                print "ERROR: item is not defined"
-            return 1
-
-    def delete(self, table="defaultTable", item=None):
-        """
-        Delete an entry in a table of the database
-        """
-        self.sql.db3.execute("DELETE FROM " + table  + "WHERE job=\"" + item["name"] + " \"")
-        self.sql.db3.commit()
 
     def read_column_info(self, table="defaultTable"):
         """
@@ -289,5 +293,6 @@ class SQLiteAPI(object):
         """
         Dump the database to store it
         """
+        os.system("sqlite3 .dump " + self.sql.path)
 
 
