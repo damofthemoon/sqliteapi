@@ -163,6 +163,7 @@ class SQLiteAPI(object):
         Read an entry in a table of the database
         Require a dict with only one entry to filter the search
         """
+        ipp = 1
         if item is not None and (type(item) is dict or type(item) is list):
             # Extract the key's name to search for
             if type(item) is dict:
@@ -171,11 +172,15 @@ class SQLiteAPI(object):
                     nname = key
                 cmd = "SELECT * FROM " + table + " WHERE " + nname + "=\"" + item[nname] + '\"'
             elif type(item) is list:
-                cmd = "SELECT * FROM " + table + " WHERE "
+                cmd = "SELECT * FROM " + table + " WHERE ("
                 for elm in item:
                     for key in elm:
-                        cmd += key + "=\"" + elm[key] + " "
-
+                        cmd += key + "=\"" + elm[key]
+                if ipp != len(item):
+                    cmd += " AND "
+                    ipp += 1
+                else:
+                    cmd += ");"
             self.sql.cursor.execute(cmd)
             # Read the values into the table
             _vals = self.sql.cursor.fetchall()
