@@ -163,6 +163,7 @@ class SQLiteAPI(object):
         Read an entry in a table of the database
         Require a dict with only one entry to filter the search
         """
+        # TODO: Handle a dict with muliple keys instead of a list of dict
         ipp = 1
         if item is not None and (type(item) is dict or type(item) is list):
             # Extract the key's name to search for
@@ -212,6 +213,8 @@ class SQLiteAPI(object):
         """
         Write an entry in a table of the database
         """
+        # TODO: Implement empty values into the field
+        # the user doen't write to avoid a NULL error
         if type(item) is dict:
             print "INFO: Write item in \"" + table + "\""
             cmd = "INSERT INTO " + table + " "
@@ -224,10 +227,36 @@ class SQLiteAPI(object):
             print "ERROR: item passed for write command is not a dict"
             return 1
 
-    def update(self, table="defaultTable", item=None):
+
+    def update(self, table="defaultTable", item=None, new_item=None):
         """
         Update an entry in a table of the database
         """
+        ipp = 1
+        cmd = "UPDATE " + table + " SET "
+        # First order the values to update
+        if new_item is not None and type(new_item) is dict:
+            # Extract the key's name to search for
+            for key in new_item.keys():
+                cmd += key + "=\"" + new_item[key] + "\""
+                if ipp != len(new_item):
+                    cmd += ", "
+                    ipp += 1
+        # Then order the value used to identify the line(s)
+        ipp = 1
+        cmd += " WHERE "
+        if item is not None and type(item) is dict:
+            # Extract the key's name to search for
+            for key in item.keys():
+                cmd += key + "=\"" + item[key] + "\""
+                if ipp != len(item):
+                    cmd += ", "
+                    ipp += 1
+                else:
+                    cmd += ";"
+        # Execute the command line and return the status
+        ret = self.sql.cursor.execute(cmd)
+        return ret
 
     def delete(self, table="defaultTable", item=None):
         """
@@ -239,6 +268,7 @@ class SQLiteAPI(object):
             for key in item.keys():
                 nname = key
             try:
+                # TODO: handle multiple field used to identify the line(s)
                 self.sql.db3.execute("DELETE FROM " + table  + "WHERE " + nname + "=\"" + item[nname] + " \"")
                 self.sql.db3.commit()
                 return 0
@@ -298,6 +328,7 @@ class SQLiteAPI(object):
         """
         Dump the database to store it
         """
+        # TODO: Return the dump output, not just the return code
         os.system("sqlite3 .dump " + self.sql.path)
 
 

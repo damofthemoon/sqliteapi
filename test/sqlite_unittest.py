@@ -14,7 +14,13 @@ import os
 import sys
 import unittest
 sys.path.append("./src")
+
+# FIXME: Fix the way to import exeternal class
 from sqlite_api import SQLiteAPI
+
+# TODO: test the open() function, success and failure
+# And use the open_flag to do automatic open() before
+# any operation
 
 class TestCreateTable(unittest.TestCase):
     """
@@ -55,6 +61,9 @@ class TestCreateTable(unittest.TestCase):
         """
         table = "MyTable"
         self.assertEqual(0, self.unit.create_table(table))
+
+    # TODO: test search table function, success and failure
+    # a return code should miss on failure
 
 class TestColumnName(unittest.TestCase):
     """
@@ -195,8 +204,99 @@ class TestWrite(unittest.TestCase):
         item["status"] = "OK"
         self.assertEqual(0, self.unit.write(table=table["name"], item=item))
 
-# Test read with a simple dict to search
-# Test read with a set of parameters to search
+    # TODO: test failure & success when writing a partial line information
+
+class TestUpdate(unittest.TestCase):
+    """
+    Testsuite 1 to test map function
+    """
+    def setUp(self):
+        """
+        Setup function launched before a testcase
+        """
+        self.dbpath = 'test/db.db3'
+        self.unit = SQLiteAPI(verbose=1, dbpath=self.dbpath)
+        self.unit.open()
+
+    def tearDown(self):
+        """
+        tearDown function launched after a testcase
+        """
+        os.system("rm -fr " + self.dbpath)
+
+    def test_update_success(self):
+        """
+        Simple test to be sure write function alive
+        """
+        # Build a table to store into the database
+        table = {}
+        table["name"] = "Pagees"
+        table["column"] = []
+        table["column"].append({"name" : 'name', "type" : "String"})
+        table["column"].append({"name" : 'comment', "type" : "str"})
+        table["column"].append({"name" : 'status', "type" : "int"})
+        self.unit.create_table(table)
+        item = {}
+        item["name"] = "aParameter1"
+        item["comment"] = "ThisIsAnUpdate"
+        item["status"] = "OK"
+        self.unit.write(table=table["name"], item=item)
+
+        item = {}
+        item["name"] = "aParameter1"
+        new_item = {}
+        new_item["status"] = "KO"
+        self.unit.update(table=table["name"], item=item, new_item=new_item)
+
+        item = {}
+        item["name"] = "aParameter1"
+        new_item = {}
+        new_item["comment"] = "ThisIsABadUpdate"
+        new_item["status"] = "KO"
+        self.unit.update(table=table["name"], item=item, new_item=new_item)
+
+    # TODO: Separate the last test into disctinct ones
+
+class TestRead(unittest.TestCase):
+    """
+    Testsuite 1 to test map function
+    """
+    def setUp(self):
+        """
+        Setup function launched before a testcase
+        """
+        self.dbpath = 'test/db.db3'
+        self.unit = SQLiteAPI(verbose=1, dbpath=self.dbpath)
+        self.unit.open()
+
+    def tearDown(self):
+        """
+        tearDown function launched after a testcase
+        """
+        os.system("rm -fr " + self.dbpath)
+
+    def test_read_success(self):
+        """
+        Simple test to be sure write function alive
+        """
+        # Build a table to store into the database
+        table = {}
+        table["name"] = "Pagees"
+        table["column"] = []
+        table["column"].append({"name" : 'name', "type" : "String"})
+        table["column"].append({"name" : 'comment', "type" : "str"})
+        table["column"].append({"name" : 'status', "type" : "int"})
+        self.unit.create_table(table)
+        item = {}
+        item["name"] = "aParameter1"
+        item["comment"] = "a status"
+        item["status"] = "OK"
+        self.unit.write(table=table["name"], item=item)
+        self.unit.read(table=table["name"], item=item)
+
+
+    # TODO: Test read with a simple dict to search
+    # TODO: Test read with a set of parameters to search
 
 if __name__ == '__main__':
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestCreateTable)
@@ -204,4 +304,8 @@ if __name__ == '__main__':
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestColumnName)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestWrite)
+    unittest.TextTestRunner(verbosity=2).run(SUITE)
+    SUITE = unittest.TestLoader().loadTestsFromTestCase(TestRead)
+    unittest.TextTestRunner(verbosity=2).run(SUITE)
+    SUITE = unittest.TestLoader().loadTestsFromTestCase(TestUpdate)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
