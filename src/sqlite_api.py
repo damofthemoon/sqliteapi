@@ -139,14 +139,18 @@ class SQLiteAPI(object):
                 for col in table["column"]:
                     cmd += " " + str(col["name"])
                     if "string" in col["type"].lower() or "str" in col["type"].lower() or "char" in col["type"].lower():
-                        cmd += " CHAR(100) NOT NULL,"
+                        cmd += " CHAR(100),"
+                        #cmd += " CHAR(100) NOT NULL,"
                     if "integer" in col["type"].lower() or "int" in col["type"].lower():
-                        cmd += " INTEGER NOT NULL,"
+                        cmd += " INTEGER,"
+                        #cmd += " INTEGER NOT NULL,"
                     if "float" in col["type"].lower() or "real" in col["type"].lower():
-                        cmd += " REAL NOT NULL,"
+                        cmd += " REAL,"
+                        #cmd += " REAL NOT NULL,"
                     if "blob" in col["type"].lower() or "raw" in col["type"].lower():
                         cmd += " BLOB,"
-                cmd += " DATETIME CHAR(100) NOT NULL)"
+                cmd += " DATETIME CHAR(100))"
+                #cmd += " DATETIME CHAR(100) NOT NULL)"
 
                 # Store into the database
                 self.sql.db3.execute(cmd)
@@ -158,63 +162,61 @@ class SQLiteAPI(object):
             print "ERROR: No string or dict is passed"
             return 1
 
-    def read(self, table="defaultTable", item=None):
+    def read(self, table="defaultTable", filters=None):
         """
         Read an entry in a table of the database
-        Require a dict with only one entry to filter the search
+        Read a dict as input containing column to filter
+        Always return all the columns
         """
-        # TODO: Handle a dict with muliple keys instead of a list of dict
         ipp = 1
-        if item is not None and (type(item) is dict or type(item) is list):
-            # Extract the key's name to search for
-            if type(item) is dict:
-                nname = ""
-                for key in item.keys():
-                    nname = key
-                cmd = "SELECT * FROM " + table + " WHERE " + nname + "=\"" + item[nname] + '\"'
-            elif type(item) is list:
-                cmd = "SELECT * FROM " + table + " WHERE ("
-                for elm in item:
-                    for key in elm:
-                        cmd += key + "=\"" + elm[key]
-                if ipp != len(item):
-                    cmd += " AND "
-                    ipp += 1
-                else:
-                    cmd += ");"
-            self.sql.cursor.execute(cmd)
-            # Read the values into the table
-            _vals = self.sql.cursor.fetchall()
-            # Read the column names
-            _cols = self.read_column_info(table)
-            ret_items = []
-            # Now parse each lines read into the database
-            for __vals in _vals:
-                ret_item = []
-                # Now combine each column name and its values into
-                # a list of dict( "name", "value")
-                for (_col, _val) in zip(_cols, list(__vals)):
-                    dit = dict()
-                    dit["name"] = _col["name"]
-                    dit["value"] = _val
-                    ret_item.append(dit)
-                if len(_vals) == 1:
-                    return ret_item
-                else:
-                    ret_items.append(ret_item)
-            return ret_items
-        else:
-            if self.verbose:
-                print "ERROR: item is not defined"
+        if type(table) is not str:
+            print "ERROR: table name must be s tring"
             return 1
+
+        if filters is None and type(filters) is not dict:
+            print "ERROR: filters to search for the entries must be ordered in a dict"
+            return 1
+
+        if self.verbose:
+            print "INFO: Read entries in " + table
+
+        cmd = "SELECT * FROM " + table + " WHERE ( "
+        # Extract the filters to use for search
+        for key in filters.keys():
+            cmd += key + "=\"" + filters[key] + '\"'
+            if ipp != len(filters):
+                cmd += " AND "
+                ipp += 1
+            else:
+                cmd += " );"
+
+        # Read the values into the table
+        self.sql.cursor.execute(cmd)
+        _vals = self.sql.cursor.fetchall()
+        # Read the column names
+        _cols = self.read_column_info(table)
+        ret_items = []
+        # Now parse each lines read into the database
+        for __vals in _vals:
+            ret_item = []
+            # Now combine each column name and its values into
+            # a list of dict( "name", "value")
+            for (_col, _val) in zip(_cols, list(__vals)):
+                dit = dict()
+                dit["name"] = _col["name"]
+                dit["value"] = _val
+                ret_item.append(dit)
+            if len(_vals) == 1:
+                return ret_item
+            else:
+                ret_items.append(ret_item)
+        return ret_items
 
 
     def write(self, table="defaultTable", item=None):
         """
         Write an entry in a table of the database
         """
-        # TODO: Implement empty values into the field
-        # the user doen't write to avoid a NULL error
         if type(item) is dict:
             print "INFO: Write item in \"" + table + "\""
             cmd = "INSERT INTO " + table + " "
@@ -255,26 +257,40 @@ class SQLiteAPI(object):
                 else:
                     cmd += ";"
         # Execute the command line and return the status
-        ret = self.sql.cursor.execute(cmd)
-        return ret
+        self.sql.cursor.execute(cmd)
+        return 0
 
-    def delete(self, table="defaultTable", item=None):
+    def delete(self, table="defaultTable", filters=None):
         """
         Delete an entry in a table of the database
         """
-        if item is not None and type(item) is dict:
-            # Extract the key's name to search for
-            nname = ""
-            for key in item.keys():
-                nname = key
-            try:
-                # TODO: handle multiple field used to identify the line(s)
-                self.sql.db3.execute("DELETE FROM " + table  + "WHERE " + nname + "=\"" + item[nname] + " \"")
-                self.sql.db3.commit()
-                return 0
-            except:
-                print "ERROR: delete command has not been executed"
-                return 1
+        if type(table) is not str:
+            print "ERROR: table name must be s tring"
+            return 1
+
+        if filters is None and type(filters) is not dict:
+            print "ERROR: filters to search for the entries must be ordered in a dict"
+            return 1
+
+        # Extract the key's name to search for
+        cmd = "DELETE FROM " + table + " WHERE ( "
+        ipp = 1
+        # Extract the filters to use for search
+        for key in filters.keys():
+            cmd += key + "=\"" + filters[key] + '\"'
+            if ipp != len(filters):
+                cmd += " AND "
+                ipp += 1
+            else:
+                cmd += " );"
+
+        try:
+            self.sql.db3.execute(cmd)
+            self.sql.db3.commit()
+            return 0
+        except:
+            print "ERROR: delete command has not been executed"
+            return 1
 
     def search_table(self, table="defaultTable"):
         """

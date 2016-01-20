@@ -204,7 +204,23 @@ class TestWrite(unittest.TestCase):
         item["status"] = "OK"
         self.assertEqual(0, self.unit.write(table=table["name"], item=item))
 
-    # TODO: test failure & success when writing a partial line information
+    def test_partial_write_success(self):
+        """
+        Simple test to be sure write function alive
+        """
+        # Build a table to store into the database
+        table = {}
+        table["name"] = "Pagees"
+        table["column"] = []
+        table["column"].append({"name" : 'name', "type" : "String"})
+        table["column"].append({"name" : 'comment', "type" : "str"})
+        table["column"].append({"name" : 'status', "type" : "int"})
+        self.unit.create_table(table)
+        item = {}
+        item["name"] = "aParameter1"
+        item["status"] = "OK"
+        self.assertEqual(0, self.unit.write(table=table["name"], item=item))
+
 
 class TestUpdate(unittest.TestCase):
     """
@@ -224,7 +240,7 @@ class TestUpdate(unittest.TestCase):
         """
         os.system("rm -fr " + self.dbpath)
 
-    def test_update_success(self):
+    def test_update_single_field_success(self):
         """
         Simple test to be sure write function alive
         """
@@ -246,16 +262,33 @@ class TestUpdate(unittest.TestCase):
         item["name"] = "aParameter1"
         new_item = {}
         new_item["status"] = "KO"
-        self.unit.update(table=table["name"], item=item, new_item=new_item)
+        self.assertEqual(0, self.unit.update(table=table["name"], item=item, new_item=new_item))
+
+    def test_update_multi_field_success(self):
+        """
+        Simple test to be sure write function alive
+        """
+        # Build a table to store into the database
+        table = {}
+        table["name"] = "Pagees"
+        table["column"] = []
+        table["column"].append({"name" : 'name', "type" : "String"})
+        table["column"].append({"name" : 'comment', "type" : "str"})
+        table["column"].append({"name" : 'status', "type" : "int"})
+        self.unit.create_table(table)
+        item = {}
+        item["name"] = "aParameter1"
+        item["comment"] = "ThisIsAnUpdate"
+        item["status"] = "OK"
+        self.unit.write(table=table["name"], item=item)
 
         item = {}
         item["name"] = "aParameter1"
         new_item = {}
         new_item["comment"] = "ThisIsABadUpdate"
         new_item["status"] = "KO"
-        self.unit.update(table=table["name"], item=item, new_item=new_item)
+        self.assertEqual(0, self.unit.update(table=table["name"], item=item, new_item=new_item))
 
-    # TODO: Separate the last test into disctinct ones
 
 class TestRead(unittest.TestCase):
     """
@@ -275,7 +308,25 @@ class TestRead(unittest.TestCase):
         """
         os.system("rm -fr " + self.dbpath)
 
-    def test_read_success(self):
+    def test_read_single_filter_success(self):
+        """
+        Simple test to be sure write function alive
+        """
+        # Build a table to store into the database
+        table = {}
+        table["name"] = "Pagees"
+        table["column"] = []
+        table["column"].append({"name" : 'name', "type" : "String"})
+        table["column"].append({"name" : 'comment', "type" : "str"})
+        table["column"].append({"name" : 'status', "type" : "int"})
+        self.unit.create_table(table)
+        item = {}
+        item["status"] = "OK"
+        self.unit.write(table=table["name"], item=item)
+        self.unit.read(table=table["name"], filters=item)
+
+
+    def test_read_multi_filters_success(self):
         """
         Simple test to be sure write function alive
         """
@@ -292,11 +343,65 @@ class TestRead(unittest.TestCase):
         item["comment"] = "a status"
         item["status"] = "OK"
         self.unit.write(table=table["name"], item=item)
-        self.unit.read(table=table["name"], item=item)
+        self.unit.read(table=table["name"], filters=item)
+
+class TestDelete(unittest.TestCase):
+    """
+    Testsuite 1 to test map function
+    """
+    def setUp(self):
+        """
+        Setup function launched before a testcase
+        """
+        self.dbpath = 'test/db.db3'
+        self.unit = SQLiteAPI(verbose=1, dbpath=self.dbpath)
+        self.unit.open()
+
+    def tearDown(self):
+        """
+        tearDown function launched after a testcase
+        """
+        os.system("rm -fr " + self.dbpath)
+
+    def test_delete_single_filter_success(self):
+        """
+        Simple test to be sure write function alive
+        """
+        # Build a table to store into the database
+        table = {}
+        table["name"] = "Pagees"
+        table["column"] = []
+        table["column"].append({"name" : 'name', "type" : "String"})
+        table["column"].append({"name" : 'comment', "type" : "str"})
+        table["column"].append({"name" : 'status', "type" : "int"})
+        self.unit.create_table(table)
+        item = {}
+        item["status"] = "OK"
+        self.unit.write(table=table["name"], item=item)
+        self.unit.delete(table=table["name"], filters=item)
 
 
-    # TODO: Test read with a simple dict to search
-    # TODO: Test read with a set of parameters to search
+    def test_delete_multi_filters_success(self):
+        """
+        Simple test to be sure write function alive
+        """
+        # Build a table to store into the database
+        table = {}
+        table["name"] = "Pagees"
+        table["column"] = []
+        table["column"].append({"name" : 'name', "type" : "String"})
+        table["column"].append({"name" : 'comment', "type" : "str"})
+        table["column"].append({"name" : 'status', "type" : "int"})
+        self.unit.create_table(table)
+        item = {}
+        item["name"] = "aParameter1"
+        item["comment"] = "a status"
+        item["status"] = "OK"
+        self.unit.write(table=table["name"], item=item)
+        self.unit.delete(table=table["name"], filters=item)
+
+
+
 
 if __name__ == '__main__':
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestCreateTable)
@@ -305,7 +410,9 @@ if __name__ == '__main__':
     unittest.TextTestRunner(verbosity=2).run(SUITE)
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestWrite)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
+    SUITE = unittest.TestLoader().loadTestsFromTestCase(TestUpdate)
+    unittest.TextTestRunner(verbosity=2).run(SUITE)
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestRead)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
-    SUITE = unittest.TestLoader().loadTestsFromTestCase(TestUpdate)
+    SUITE = unittest.TestLoader().loadTestsFromTestCase(TestDelete)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
