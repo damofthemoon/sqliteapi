@@ -14,6 +14,7 @@ SQLite API and its sub-class
 import os
 import sqlite3
 from datetime import datetime
+import subprocess
 
 class DbObject(object):
     """
@@ -288,7 +289,7 @@ class SQLiteAPI(object):
             self.sql.db3.execute(cmd)
             self.sql.db3.commit()
             return 0
-        except:
+        except sqlite3.Error:
             print "ERROR: delete command has not been executed"
             return 1
 
@@ -300,7 +301,7 @@ class SQLiteAPI(object):
         try:
             ret = self.sql.cursor.execute("SELECT 1 FROM " + str(table) + " LIMIT 1")
             ret = self.sql.cursor.fetchall()
-        except:
+        except sqlite3.Error:
             if self.verbose:
                 print "INFO: searched table \""+ table + "\" is not defined"
         return ret
@@ -344,7 +345,7 @@ class SQLiteAPI(object):
         """
         Dump the database to store it
         """
-        # TODO: Return the dump output, not just the return code
-        os.system("sqlite3 .dump " + self.sql.path)
-
+        if self.verbose:
+            print "INFO: Dump SQLite database " + self.sql.path
+        return subprocess.check_output(["sqlite3", self.sql.path, ".dump"])
 
