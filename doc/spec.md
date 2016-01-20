@@ -6,61 +6,59 @@
 * Python 2.7
 
 ## API DESCRIPTION
-### INIT
-* Used to initialize the class
-* self.open-flag
-* self.dbpath
-* self.verbose
-* self.cursor = None
-* self.setup()
 
-### SETUP.VERBOSE
+### __INIT__
+* Used to initialize the class
+* self.sql: object containing the sqlite3 object
+* self.open_flag: internal flag to open or close the database
+* self.dbpath: string to store path to db3 file
+* self.verbose: verbose mode 0 or 1
+
+### SET_VERBOSE()
 * Set self.verbose
 
-### SETUP.DB
-* If self.open-flag, self.close()
-* If dbpath, set self.dbpath
+### SET_DB_PATH()
+* Set self.sql.dbpath
 
-### OPEN
-* If dbpath, self.setupdb()
+### OPEN()
 * If not self.open-flag, self.open()
 
-### CLOSE
+### CLOSE()
 * If self.open-flag, self.close() database
 
-### EXIT
+### EXIT()
 * Close database with self.close()
 * Initialize internal variables
 
-### READ
-* If not self.open-flag, self.open()
-* Read database entry into a database\'s table
+### READ()
+* self.open()
+* Read database entry into a database\'s table by using filter
+* Sort columns returns by adding the column name for each entry(ies)
 * If exists, return entry, else 1
 
-### WRITE
-* If not self.open-flag, self.open()
-* Self.search(), if exists, return 1, else:
+### WRITE()
+* self.open()
 * Write database entry into a database's table
 * Return 0
 
-### UPDATE
+### UPDATE()
+* self.open()
 * If not self.open-flag, self.open()
 * Update database entry
-    * Read database to self.search() element into a database's table
-    * If doesn't exist self.write()
-    * Else write a new value into
+    * search for all entries complying filters
+    * updates the fields specified
 
-### DELETE
-* If not self.open-flag, self.open()
+### DELETE()
+* self.open()
 * Delete database entry
-    *   Read database to self.search() element into a database's table or into the whole database
+    * Read database to self.search() element into a database's table or into the whole database
     * If exists, delete it, else return 1
 
-### SEARCH
-* If not self.open-flag, self.open()
+### SEARCH()
+* self.open()
 * Search an entry into a database's table
 * Return entry if exists, else 1
 
-### DUMP
+### DUMP()
 * Do a dummy dump of the database's past instructions for backup purpose.
 

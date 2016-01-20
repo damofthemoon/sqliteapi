@@ -85,14 +85,18 @@ class SQLiteAPI(object):
         """
         Open sqlite3 database
         """
-        self.sql.db3 = sqlite3.connect(self.sql.path)
-        self.sql.cursor = self.sql.db3.cursor()
+        if not self.open_flag:
+            self.sql.db3 = sqlite3.connect(self.sql.path)
+            self.sql.cursor = self.sql.db3.cursor()
+            self.open_flag = True
 
     def close(self):
         """
         Close sqlite3 database
         """
-        self.sql.cursor.close()
+        if self.open_flag:
+            self.sql.cursor.close()
+            self.open_flag = False
 
     def exit(self):
         """
@@ -116,6 +120,7 @@ class SQLiteAPI(object):
         are int, float, string and raw
         The column is created only if another one doesn't exist
         """
+        self.open()
 
         if type(table) is str:
             if self.search_table(table) is 0:
@@ -169,6 +174,7 @@ class SQLiteAPI(object):
         Read a dict as input containing column to filter
         Always return all the columns
         """
+        self.open()
         ipp = 1
         if type(table) is not str:
             print "ERROR: table name must be s tring"
@@ -218,6 +224,7 @@ class SQLiteAPI(object):
         """
         Write an entry in a table of the database
         """
+        self.open()
         if type(item) is dict:
             print "INFO: Write item in \"" + table + "\""
             cmd = "INSERT INTO " + table + " "
@@ -235,6 +242,7 @@ class SQLiteAPI(object):
         """
         Update an entry in a table of the database
         """
+        self.open()
         ipp = 1
         cmd = "UPDATE " + table + " SET "
         # First order the values to update
@@ -265,6 +273,7 @@ class SQLiteAPI(object):
         """
         Delete an entry in a table of the database
         """
+        self.open()
         if type(table) is not str:
             print "ERROR: table name must be s tring"
             return 1
@@ -297,6 +306,7 @@ class SQLiteAPI(object):
         """
         Search an entry in a table of the database
         """
+        self.open()
         ret = 0
         try:
             ret = self.sql.cursor.execute("SELECT 1 FROM " + str(table) + " LIMIT 1")
@@ -310,6 +320,7 @@ class SQLiteAPI(object):
         """
         Return the column names of the table
         """
+        self.open()
         cmd = "PRAGMA table_info('" + table + "')"
         self.sql.cursor.execute(cmd)
         infos = self.sql.cursor.fetchall()
@@ -345,6 +356,7 @@ class SQLiteAPI(object):
         """
         Dump the database to store it
         """
+        self.open()
         if self.verbose:
             print "INFO: Dump SQLite database " + self.sql.path
         return subprocess.check_output(["sqlite3", self.sql.path, ".dump"])
