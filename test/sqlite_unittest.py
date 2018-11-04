@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
 Unit tests
 """
+
 # bug in pylint leading to unfound some arguments of a function
 # pylint: disable=E1120
 # line too long
@@ -13,7 +15,7 @@ Unit tests
 import os
 import sys
 import unittest
-sys.path.append("./src")
+sys.path.append("./")
 
 # FIXME: Fix the way to import exeternal class
 from sqlite_api import SQLiteAPI
@@ -22,10 +24,13 @@ from sqlite_api import SQLiteAPI
 # And use the open_flag to do automatic open() before
 # any operation
 
+
 class TestCreateTable(unittest.TestCase):
+
     """
-    Testsuite 1 to test create table function
+    Testsuite to test create table function
     """
+
     def setUp(self):
         """
         Setup function launched before a testcase
@@ -65,10 +70,13 @@ class TestCreateTable(unittest.TestCase):
     # TODO: test search table function, success and failure
     # a return code should miss on failure
 
+
 class TestColumnName(unittest.TestCase):
+
     """
-    Testsuite 1 to ensure proper column name
+    Testsuite to ensure proper column name
     """
+
     def setUp(self):
         """
         Setup function launched before a testcase
@@ -114,9 +122,9 @@ class TestColumnName(unittest.TestCase):
         table = {}
         table["name"] = "Pagees"
         table["column"] = []
-        table["column"].append({"name" : 'name', "type" : "String"})
-        table["column"].append({"name" : 'comment', "type" : "str"})
-        table["column"].append({"name" : 'status', "type" : "int"})
+        table["column"].append({"name": 'name', "type": "String"})
+        table["column"].append({"name": 'comment', "type": "str"})
+        table["column"].append({"name": 'status', "type": "int"})
         self.unit.create_table(table)
         table_column_read = self.unit.read_column_info(table["name"])
         # Now rebuilt the table by adding the ID column naturaly
@@ -124,11 +132,11 @@ class TestColumnName(unittest.TestCase):
         table = {}
         table["name"] = "Pagees"
         table["column"] = []
-        table["column"].append({"name" : 'id', "type" : "integer"})
-        table["column"].append({"name" : 'name', "type" : "char(100)"})
-        table["column"].append({"name" : 'comment', "type" : "char(100)"})
-        table["column"].append({"name" : 'status', "type" : "integer"})
-        table["column"].append({"name" : 'datetime', "type" : "char(100)"})
+        table["column"].append({"name": 'id', "type": "integer"})
+        table["column"].append({"name": 'name', "type": "char(100)"})
+        table["column"].append({"name": 'comment', "type": "char(100)"})
+        table["column"].append({"name": 'status', "type": "integer"})
+        table["column"].append({"name": 'datetime', "type": "char(100)"})
         ipp = 0
         columns = zip(table["column"], table_column_read)
         for col in columns:
@@ -149,10 +157,13 @@ class TestColumnName(unittest.TestCase):
                 self.assertEqual(col[0]["type"], col[1]["type"].lower())
             ipp = ipp + 1
 
+
 class TestWrite(unittest.TestCase):
+
     """
-    Testsuite 1 to test map function
+    Testsuite to test map function
     """
+
     def setUp(self):
         """
         Setup function launched before a testcase
@@ -175,16 +186,15 @@ class TestWrite(unittest.TestCase):
         table = {}
         table["name"] = "Pagees"
         table["column"] = []
-        table["column"].append({"name" : 'name', "type" : "String"})
-        table["column"].append({"name" : 'comment', "type" : "str"})
-        table["column"].append({"name" : 'status', "type" : "int"})
+        table["column"].append({"name": 'name', "type": "String"})
+        table["column"].append({"name": 'comment', "type": "str"})
+        table["column"].append({"name": 'status', "type": "int"})
         self.unit.create_table(table)
         item = {}
         item["name"] = "aParameter1"
         item["comment"] = "ThisIsAnUpdate"
         item["status"] = "OK"
         self.assertEqual(1, self.unit.write(table=table["name"]))
-
 
     def test_write_success(self):
         """
@@ -194,9 +204,9 @@ class TestWrite(unittest.TestCase):
         table = {}
         table["name"] = "Pagees"
         table["column"] = []
-        table["column"].append({"name" : 'name', "type" : "String"})
-        table["column"].append({"name" : 'comment', "type" : "str"})
-        table["column"].append({"name" : 'status', "type" : "int"})
+        table["column"].append({"name": 'name', "type": "String"})
+        table["column"].append({"name": 'comment', "type": "str"})
+        table["column"].append({"name": 'status', "type": "int"})
         self.unit.create_table(table)
         item = {}
         item["name"] = "aParameter1"
@@ -212,9 +222,9 @@ class TestWrite(unittest.TestCase):
         table = {}
         table["name"] = "Pagees"
         table["column"] = []
-        table["column"].append({"name" : 'name', "type" : "String"})
-        table["column"].append({"name" : 'comment', "type" : "str"})
-        table["column"].append({"name" : 'status', "type" : "int"})
+        table["column"].append({"name": 'name', "type": "String"})
+        table["column"].append({"name": 'comment', "type": "str"})
+        table["column"].append({"name": 'status', "type": "int"})
         self.unit.create_table(table)
         item = {}
         item["name"] = "aParameter1"
@@ -223,9 +233,11 @@ class TestWrite(unittest.TestCase):
 
 
 class TestUpdate(unittest.TestCase):
+
     """
-    Testsuite 1 to test map function
+    Testsuite to test map function
     """
+
     def setUp(self):
         """
         Setup function launched before a testcase
@@ -248,9 +260,9 @@ class TestUpdate(unittest.TestCase):
         table = {}
         table["name"] = "Pagees"
         table["column"] = []
-        table["column"].append({"name" : 'name', "type" : "String"})
-        table["column"].append({"name" : 'comment', "type" : "str"})
-        table["column"].append({"name" : 'status', "type" : "int"})
+        table["column"].append({"name": 'name', "type": "String"})
+        table["column"].append({"name": 'comment', "type": "str"})
+        table["column"].append({"name": 'status', "type": "int"})
         self.unit.create_table(table)
         item = {}
         item["name"] = "aParameter1"
@@ -272,9 +284,9 @@ class TestUpdate(unittest.TestCase):
         table = {}
         table["name"] = "Pagees"
         table["column"] = []
-        table["column"].append({"name" : 'name', "type" : "String"})
-        table["column"].append({"name" : 'comment', "type" : "str"})
-        table["column"].append({"name" : 'status', "type" : "int"})
+        table["column"].append({"name": 'name', "type": "String"})
+        table["column"].append({"name": 'comment', "type": "str"})
+        table["column"].append({"name": 'status', "type": "int"})
         self.unit.create_table(table)
         item = {}
         item["name"] = "aParameter1"
@@ -291,9 +303,11 @@ class TestUpdate(unittest.TestCase):
 
 
 class TestRead(unittest.TestCase):
+
     """
-    Testsuite 1 to test map function
+    Testsuite to test read function
     """
+
     def setUp(self):
         """
         Setup function launched before a testcase
@@ -316,16 +330,15 @@ class TestRead(unittest.TestCase):
         table = {}
         table["name"] = "Pagees"
         table["column"] = []
-        table["column"].append({"name" : 'name', "type" : "String"})
-        table["column"].append({"name" : 'comment', "type" : "str"})
-        table["column"].append({"name" : 'status', "type" : "int"})
+        table["column"].append({"name": 'name', "type": "String"})
+        table["column"].append({"name": 'comment', "type": "str"})
+        table["column"].append({"name": 'status', "type": "int"})
         self.unit.create_table(table)
         item = {}
         item["status"] = "OK"
         self.unit.write(table=table["name"], item=item)
         ret = self.unit.read(table=table["name"], filters=item)
         self.assertEqual(list, type(ret))
-
 
     def test_read_multi_filters_success(self):
         """
@@ -335,9 +348,9 @@ class TestRead(unittest.TestCase):
         table = {}
         table["name"] = "Pagees"
         table["column"] = []
-        table["column"].append({"name" : 'name', "type" : "String"})
-        table["column"].append({"name" : 'comment', "type" : "str"})
-        table["column"].append({"name" : 'status', "type" : "int"})
+        table["column"].append({"name": 'name', "type": "String"})
+        table["column"].append({"name": 'comment', "type": "str"})
+        table["column"].append({"name": 'status', "type": "int"})
         self.unit.create_table(table)
         item = {}
         item["name"] = "aParameter1"
@@ -352,10 +365,13 @@ class TestRead(unittest.TestCase):
         for lines in ret:
             self.assertEqual(list, type(lines))
 
+
 class TestDelete(unittest.TestCase):
+
     """
-    Testsuite 1 to test map function
+    Testsuite to test delete function
     """
+
     def setUp(self):
         """
         Setup function launched before a testcase
@@ -378,15 +394,14 @@ class TestDelete(unittest.TestCase):
         table = {}
         table["name"] = "Pagees"
         table["column"] = []
-        table["column"].append({"name" : 'name', "type" : "String"})
-        table["column"].append({"name" : 'comment', "type" : "str"})
-        table["column"].append({"name" : 'status', "type" : "int"})
+        table["column"].append({"name": 'name', "type": "String"})
+        table["column"].append({"name": 'comment', "type": "str"})
+        table["column"].append({"name": 'status', "type": "int"})
         self.unit.create_table(table)
         item = {}
         item["status"] = "OK"
         self.unit.write(table=table["name"], item=item)
         self.assertEqual(0, self.unit.delete(table=table["name"], filters=item))
-
 
     def test_delete_multi_filters_success(self):
         """
@@ -396,9 +411,9 @@ class TestDelete(unittest.TestCase):
         table = {}
         table["name"] = "Pagees"
         table["column"] = []
-        table["column"].append({"name" : 'name', "type" : "String"})
-        table["column"].append({"name" : 'comment', "type" : "str"})
-        table["column"].append({"name" : 'status', "type" : "int"})
+        table["column"].append({"name": 'name', "type": "String"})
+        table["column"].append({"name": 'comment', "type": "str"})
+        table["column"].append({"name": 'status', "type": "int"})
         self.unit.create_table(table)
         item = {}
         item["name"] = "aParameter1"
@@ -407,9 +422,10 @@ class TestDelete(unittest.TestCase):
         self.unit.write(table=table["name"], item=item)
         self.assertEqual(0, self.unit.delete(table=table["name"], filters=item))
 
+
 class TestDump(unittest.TestCase):
     """
-    Testsuite 1 to test map function
+    Testsuite to test dump function
     """
     def setUp(self):
         """
@@ -433,9 +449,9 @@ class TestDump(unittest.TestCase):
         table = {}
         table["name"] = "Pagees"
         table["column"] = []
-        table["column"].append({"name" : 'name', "type" : "String"})
-        table["column"].append({"name" : 'comment', "type" : "str"})
-        table["column"].append({"name" : 'status', "type" : "int"})
+        table["column"].append({"name": 'name', "type": "String"})
+        table["column"].append({"name": 'comment', "type": "str"})
+        table["column"].append({"name": 'status', "type": "int"})
         self.unit.create_table(table)
         item = {}
         item["status"] = "OK"
@@ -447,17 +463,24 @@ class TestDump(unittest.TestCase):
 
 
 if __name__ == '__main__':
+
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestCreateTable)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
+
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestColumnName)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
+
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestWrite)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
+
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestUpdate)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
+
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestRead)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
+
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestDelete)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
+
     SUITE = unittest.TestLoader().loadTestsFromTestCase(TestDump)
     unittest.TextTestRunner(verbosity=2).run(SUITE)
